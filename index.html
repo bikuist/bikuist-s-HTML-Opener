@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bikuist's HTML Opener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono&display=swap');
+
+    :root {
+      --accent: #22ff88;
+    }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: #000 no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .glass {
+      background: rgba(15,15,15,0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.25rem;
+    }
+    .neon-btn {
+      transition: all 0.25s ease;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 30px var(--accent);
+      transform: translateY(-2px) scale(1.03);
+    }
+  </style>
+</head>
+<body id="theBody">
+
+  <header class="fixed top-0 w-full bg-black/75 backdrop-blur-lg border-b border-white/10 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex justify-between items-center">
+      <h1 class="text-3xl font-bold tracking-tight">Bikuist's HTML Opener</h1>
+      <div class="text-sm mono text-white/60">
+        Upload files to GitHub → background from your repo
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 pt-28 pb-20">
+    <!-- HTML Opener Section -->
+    <div class="glass p-9 mb-10">
+      <h2 class="text-2xl font-semibold mb-6 text-[var(--accent)]">Open HTML from GitHub Raw URL</h2>
+      
+      <p class="text-white/80 mb-6 leading-relaxed">
+        1. Upload your .html files anywhere in your repo<br>
+        2. On GitHub, right-click the file → "Copy link" (or go to raw view and copy the URL)<br>
+        3. Paste below and choose how to open it
+      </p>
+
+      <input id="htmlUrl" type="url" placeholder="https://raw.githubusercontent.com/YOURUSERNAME/REPONAME/main/test.html"
+             class="w-full p-5 bg-black/60 border border-white/20 rounded-xl text-white mono text-base focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30"/>
+
+      <div class="mt-8 flex flex-wrap justify-center gap-5">
+        <button onclick="openHtml('blob')" class="neon-btn px-9 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-lg">blob:</button>
+        <button onclick="openHtml('data')" class="neon-btn px-9 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-lg">data:</button>
+        <button onclick="openHtml('blank')" class="neon-btn px-9 py-4 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-lg">about:blank</button>
+      </div>
+    </div>
+
+    <!-- Info about background (no button) -->
+    <div class="glass p-9 text-center">
+      <h2 class="text-2xl font-semibold mb-5">Background from your repo</h2>
+      <p class="text-white/70 mono mb-4 text-sm">
+        Upload .jpg / .png / .webp / .gif files to the <code>images/</code> folder in your repo.<br>
+        Add their filenames to the array in the code below → commit & push.<br>
+        One image is automatically chosen when the page loads.
+      </p>
+      <p class="text-white/50 text-xs mt-6">
+        Refresh the page to get a different random background (if you have multiple images).
+      </p>
+    </div>
+  </main>
+
+  <footer class="text-center py-10 text-white/40 mono text-sm border-t border-white/10">
+    100% client-side • Host on GitHub Pages • Files live in your repo
+  </footer>
+
+  <script>
+    // ────────────────────────────────────────────────
+    //          CHANGE THESE THREE LINES
+    // ────────────────────────────────────────────────
+    const YOUR_USERNAME   = "NOTthebigiuxzn";           // ← your GitHub username
+    const YOUR_REPO_NAME  = "bikuist-html-opener";      // ← name of the repo you create
+    const IMAGE_FOLDER    = "images";                   // ← folder name (create it)
+
+    // ────────────────────────────────────────────────
+    //    ADD YOUR IMAGE FILENAMES HERE (exact names)
+    // ────────────────────────────────────────────────
+    const backgroundFilenames = [
+      "bg1.jpg",
+      "cyber-night.png",
+      "neon-grid.webp",
+      "void-space.gif",
+      "dark-city.jpg",
+      // ↑ add more filenames here as you upload new images
+    ];
+
+    function getImageUrl(filename) {
+      return `https://raw.githubusercontent.com/${YOUR_USERNAME}/${YOUR_REPO_NAME}/main/${IMAGE_FOLDER}/${filename}`;
+    }
+
+    function setRandomBackground() {
+      if (backgroundFilenames.length === 0) {
+        console.warn("No background filenames defined — using plain black");
+        document.body.style.backgroundImage = "none";
+        return;
+      }
+
+      const idx = Math.floor(Math.random() * backgroundFilenames.length);
+      const url = getImageUrl(backgroundFilenames[idx]);
+
+      document.body.style.backgroundImage = `url('${url}')`;
+      console.log("Background set to:", url);
+    }
+
+    // Set background once when page loads
+    setRandomBackground();
+
+    // ────────────────────────────────────────────────
+    //          HTML opening functions
+    // ────────────────────────────────────────────────
+    function openHtml(mode) {
+      const input = document.getElementById("htmlUrl");
+      const url = input.value.trim();
+
+      if (!url) {
+        alert("Please paste a raw GitHub URL first!");
+        return;
+      }
+
+      if (mode === 'blob') {
+        fetch(url)
+          .then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); })
+          .then(html => {
+            const blob = new Blob([html], { type: "text/html" });
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, "_blank");
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+          })
+          .catch(err => alert("Could not load the file:\n" + err.message));
+      }
+      else if (mode === 'data') {
+        fetch(url)
+          .then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); })
+          .then(html => {
+            const dataUrl = "data:text/html;charset=utf-8," + encodeURIComponent(html);
+            window.open(dataUrl, "_blank");
+          })
+          .catch(err => alert("Could not load the file:\n" + err.message));
+      }
+      else if (mode === 'blank') {
+        const win = window.open("about:blank", "_blank");
+        if (win) {
+          win.document.write(`<iframe src="${url}" frameborder="0" style="width:100vw;height:100vh;border:none;"></iframe>`);
+          win.document.close();
+        } else {
+          alert("Popup was blocked — please allow popups for this site.");
+        }
+      }
+    }
+  </script>
+</body>
+</html>
